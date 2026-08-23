@@ -13,7 +13,7 @@ const schema = z.object({
   password: z.string().min(10, "Use at least 10 characters").max(200),
   phone: z.string().max(40).optional().or(z.literal("")),
   country: z.string().max(80).optional().or(z.literal("")),
-  acceptedTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
+  acceptedTerms: z.literal(true, { message: "You must accept the terms" }),
 });
 
 export async function POST(request: Request) {

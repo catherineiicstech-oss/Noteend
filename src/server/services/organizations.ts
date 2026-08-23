@@ -57,6 +57,7 @@ export async function getOrganization(actor: Actor, organizationId: string) {
     include: {
       settings: true,
       members: { include: { user: { select: { id: true, name: true, email: true } } } },
+      invitations: { where: { acceptedAt: null }, orderBy: { createdAt: "desc" } },
       subscriptions: { include: { plan: true }, orderBy: { createdAt: "desc" } },
       styleGuides: true,
     },
