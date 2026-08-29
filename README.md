@@ -74,6 +74,10 @@ npm run build
   editors only see projects they are assigned to, customers never see internal notes or
   files that are not marked customer-visible, and file downloads go through short-lived
   signed URLs after an authorisation check.
+- **Guest access** (`src/server/services/account-access.ts`): converting a guest quote request
+  creates the customer account and emails a single-use, 72-hour password link so the person
+  who sent documents can sign in, approve the quote and download deliverables. Only the SHA-256
+  hash of the link token is stored, and the same route backs "forgot password".
 - **Audit** (`src/server/services/audit.ts`) records critical mutations and file downloads.
 
 ## Known limitations

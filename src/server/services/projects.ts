@@ -365,6 +365,18 @@ export async function assignStaff(
     link: `/staff/projects/${projectId}`,
   });
 
+  if (role === "EDITOR") {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { status: true },
+    });
+    if (project?.status === "AWAITING_ASSIGNMENT") {
+      await transitionProject(actor, projectId, "ASSIGNED", {
+        reason: `${user.name} assigned as editor`,
+      });
+    }
+  }
+
   return assignment;
 }
 

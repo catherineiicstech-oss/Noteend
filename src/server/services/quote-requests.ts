@@ -4,6 +4,7 @@ import type { Actor } from "@/server/auth/session";
 import { NotFoundError } from "@/lib/errors";
 import { assertPermission, hasRole } from "@/server/policies";
 import { reference } from "@/lib/reference";
+import { issuePasswordSetupToken } from "@/server/services/account-access";
 import { recordAudit } from "@/server/services/audit";
 import { estimateForService } from "@/server/services/pricing";
 import { queueEmail } from "@/server/services/notifications";
@@ -153,6 +154,11 @@ export async function convertToProject(actor: Actor, quoteRequestId: string) {
       update: {},
     });
     userId = user.id;
+    // A guest has no password yet, so without this they could never sign in to
+    // follow the project that was just created for them.
+    if (!user.passwordHash) {
+      await issuePasswordSetupToken(user.email, "CLAIM");
+    }
   }
 
   const project = await createProject(actor, {
