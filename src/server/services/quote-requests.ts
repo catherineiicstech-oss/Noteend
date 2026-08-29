@@ -11,6 +11,7 @@ import { queueEmail } from "@/server/services/notifications";
 import { createProject } from "@/server/services/projects";
 import { siteConfig } from "@/lib/site";
 import { storeQuoteRequestFile } from "@/server/services/files";
+import { demoQuoteRequests } from "@/lib/demo-data";
 
 export type QuoteRequestInput = {
   contactName: string;
@@ -112,6 +113,11 @@ export async function listQuoteRequests(actor: Actor, status?: string) {
     hasRole(actor, "PROJECT_MANAGER", "FINANCE", "SUPER_ADMIN"),
     "Only staff can view incoming requests",
   );
+  if (actor.id === "demo-admin") {
+    return status
+      ? demoQuoteRequests.filter((request) => request.status === status)
+      : demoQuoteRequests;
+  }
   const where: Prisma.QuoteRequestWhereInput = {};
   if (status) where.status = status as Prisma.EnumQuoteRequestStatusFilter["equals"];
   return prisma.quoteRequest.findMany({

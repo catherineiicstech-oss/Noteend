@@ -17,6 +17,7 @@ import { canTransition, STATUS_LABELS } from "@/server/services/workflow";
 import { reference } from "@/lib/reference";
 import { notify } from "@/server/services/notifications";
 import { getSetting } from "@/server/services/settings";
+import { demoProject, demoProjects } from "@/lib/demo-data";
 
 const contextSelect = {
   id: true,
@@ -28,6 +29,20 @@ const contextSelect = {
 } satisfies Prisma.ProjectSelect;
 
 export async function loadProjectContext(projectId: string): Promise<ProjectContext> {
+  if (projectId === demoProject.id) {
+    return {
+      id: demoProject.id,
+      ownerUserId: demoProject.owner.id,
+      organizationId: demoProject.organization.id,
+      status: demoProject.status,
+      isPremium: demoProject.isPremium,
+      assignments: demoProject.assignments.map((assignment) => ({
+        userId: assignment.user.id,
+        role: assignment.role,
+        unassignedAt: null,
+      })),
+    };
+  }
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: contextSelect,
@@ -38,6 +53,9 @@ export async function loadProjectContext(projectId: string): Promise<ProjectCont
 
 /// Every project read goes through here so that scoping is applied once.
 export async function getProjectForActor(actor: Actor, projectId: string) {
+  if (actor.id === "demo-admin") {
+    return projectId === demoProject.id ? demoProject : null;
+  }
   const context = await loadProjectContext(projectId);
   assertPermission(canViewProject(actor, context), "You cannot access this project");
   return prisma.project.findUniqueOrThrow({
@@ -119,6 +137,19 @@ export function scopeFilter(actor: Actor, filter: ProjectListFilter): Prisma.Pro
 }
 
 export async function listProjects(actor: Actor, filter: ProjectListFilter = {}) {
+  if (actor.id === "demo-admin") {
+    return demoProjects.filter((project) => {
+      if (filter.status?.length && !filter.status.includes(project.status)) return false;
+      if (filter.organizationId && project.organization?.id !== filter.organizationId) return false;
+      if (filter.search) {
+        const query = filter.search.toLowerCase();
+        if (!project.title.toLowerCase().includes(query) && !project.reference.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
   return prisma.project.findMany({
     where: scopeFilter(actor, filter),
     include: {

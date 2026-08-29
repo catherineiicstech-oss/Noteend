@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import type { OrgRole, SystemRole } from "@prisma/client";
-import { authOptions } from "@/server/auth/options";
+import { demoActor } from "@/lib/demo-data";
 import { HttpError } from "@/lib/errors";
 
 export type Actor = {
@@ -11,28 +10,18 @@ export type Actor = {
   memberships: { organizationId: string; role: OrgRole }[];
 };
 
-export async function currentActor(): Promise<Actor | null> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return null;
-  return {
-    id: session.user.id,
-    email: session.user.email ?? "",
-    name: session.user.name ?? "",
-    roles: session.user.roles ?? [],
-    memberships: session.user.memberships ?? [],
-  };
+/** The showcase is always signed in as a fully privileged demo user. */
+export async function currentActor(): Promise<Actor> {
+  return demoActor;
 }
 
 export async function requireActor(): Promise<Actor> {
-  const actor = await currentActor();
-  if (!actor) throw new HttpError(401, "Authentication required");
-  return actor;
+  return demoActor;
 }
 
 export async function requireRole(...roles: SystemRole[]): Promise<Actor> {
-  const actor = await requireActor();
-  if (!roles.some((role) => actor.roles.includes(role))) {
-    throw new HttpError(403, "You do not have access to this resource");
+  if (!roles.some((role) => demoActor.roles.includes(role))) {
+    throw new HttpError(403, "The demo persona does not have access to this screen");
   }
-  return actor;
+  return demoActor;
 }

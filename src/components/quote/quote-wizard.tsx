@@ -83,27 +83,25 @@ export function QuoteWizard({
   const refreshEstimate = useCallback(async () => {
     if (!serviceId || !wordCount || !deadline) return;
     setEstimateError(null);
-    const response = await fetch("/api/pricing/estimate", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        serviceId,
-        wordCount,
-        complexity,
-        deadline: new Date(`${deadline}T17:00:00`).toISOString(),
-        fileCount: Math.max(1, files.length),
-        needsFormatting,
-        needsResearch,
-      }),
+    const complexityMultiplier = complexity === "SPECIALIST" ? 1.6 : complexity === "TECHNICAL" ? 1.3 : 1;
+    const editingMinor = Math.max(5_000_000, Math.round(wordCount * 2500 * complexityMultiplier));
+    const formattingMinor = needsFormatting ? 2_500_000 : 0;
+    const researchMinor = needsResearch ? 4_000_000 : 0;
+    const subtotalMinor = editingMinor + formattingMinor + researchMinor;
+    const taxMinor = Math.round(subtotalMinor * 0.18);
+    setEstimate({
+      currency: "UGX",
+      lines: [
+        { description: `${wordCount.toLocaleString()} words`, totalMinor: editingMinor },
+        ...(formattingMinor ? [{ description: "Formatting", totalMinor: formattingMinor }] : []),
+        ...(researchMinor ? [{ description: "Research support", totalMinor: researchMinor }] : []),
+      ],
+      subtotalMinor,
+      taxMinor,
+      taxLabel: "VAT (18%)",
+      totalMinor: subtotalMinor + taxMinor,
     });
-    if (!response.ok) {
-      setEstimate(null);
-      setEstimateError("An estimate is not available for this service — we will quote manually.");
-      return;
-    }
-    const body = await response.json();
-    setEstimate(body.estimate);
-  }, [serviceId, wordCount, complexity, deadline, files.length, needsFormatting, needsResearch]);
+  }, [serviceId, wordCount, complexity, deadline, needsFormatting, needsResearch]);
 
   useEffect(() => {
     if (step >= 1) void refreshEstimate();
@@ -114,30 +112,9 @@ export function QuoteWizard({
     setSubmitting(true);
     setError(null);
 
-    const form = new FormData(event.currentTarget);
-    form.set("serviceId", serviceId);
-    form.set("serviceOther", serviceOther);
-    form.set("documentType", documentType);
-    form.set("wordCount", String(wordCount));
-    form.set("complexity", complexity);
-    form.set("deadline", new Date(`${deadline}T17:00:00`).toISOString());
-    form.set("citationStyle", citationStyle);
-    form.set("industry", industry);
-    form.set("confidentiality", confidentiality);
-    form.set("needsFormatting", String(needsFormatting));
-    form.set("needsResearch", String(needsResearch));
-    form.set("description", description);
-    for (const file of files) form.append("files", file);
-
-    const response = await fetch("/api/quote-requests", { method: "POST", body: form });
+    await new Promise((resolve) => window.setTimeout(resolve, 450));
     setSubmitting(false);
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      setError(body.error ?? "We could not submit your request.");
-      return;
-    }
-    const body = await response.json();
-    setReference(body.reference);
+    setReference("QR-DEMO-0241");
   }
 
   if (reference) {

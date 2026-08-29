@@ -1,26 +1,13 @@
 import { Card, CardBody, CardHeader } from "@/components/ui";
 import { SettingsEditor } from "@/components/dashboard/settings-editor";
-import { requireRole } from "@/server/auth/session";
-import { getSettings } from "@/server/services/settings";
-import { prisma } from "@/server/db";
+import { demoAudits, demoServices, demoSettings } from "@/lib/demo-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  await requireRole("SUPER_ADMIN");
-  const [settings, services, audits] = await Promise.all([
-    getSettings(),
-    prisma.service.findMany({
-      where: { isActive: true },
-      include: { category: true, pricingRules: { where: { isActive: true }, take: 1 } },
-      orderBy: [{ category: { position: "asc" } }, { position: "asc" }],
-    }),
-    prisma.auditLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 25,
-      include: { actor: { select: { name: true } } },
-    }),
-  ]);
+  const settings = demoSettings;
+  const services = demoServices;
+  const audits = demoAudits;
 
   return (
     <div className="space-y-6">

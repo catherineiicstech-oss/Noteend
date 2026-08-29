@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ComponentProps } from "react";
@@ -16,8 +15,8 @@ type Props = {
   onDone?: (payload: unknown) => void;
 };
 
-/// Small client wrapper so server-rendered pages can trigger a service-layer
-/// mutation and refresh without each screen re-implementing fetch handling.
+/// Showcase actions are intentionally simulated: they demonstrate feedback
+/// and confirmation states without requiring API routes or persistent data.
 export function ActionButton({
   endpoint,
   body,
@@ -28,27 +27,17 @@ export function ActionButton({
   size = "sm",
   onDone,
 }: Props) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [complete, setComplete] = useState(false);
 
   async function run() {
     if (confirm && !window.confirm(confirm)) return;
     setPending(true);
-    setError(null);
-    const response = await fetch(endpoint, {
-      method,
-      headers: body ? { "content-type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    const payload = await response.json().catch(() => ({}));
+    setComplete(false);
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
     setPending(false);
-    if (!response.ok) {
-      setError(payload.error ?? "That action could not be completed");
-      return;
-    }
-    onDone?.(payload);
-    router.refresh();
+    setComplete(true);
+    onDone?.({ demo: true, endpoint, method, body });
   }
 
   return (
@@ -56,7 +45,7 @@ export function ActionButton({
       <Button type="button" variant={variant} size={size} disabled={pending} onClick={run}>
         {pending ? "Working…" : children}
       </Button>
-      {error ? <span className="text-xs text-red-600">{error}</span> : null}
+      {complete ? <span className="text-xs text-accent-700">Demo action complete</span> : null}
     </span>
   );
 }

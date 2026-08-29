@@ -27,6 +27,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 lg:flex-row">
         <DashboardNav roles={actor.roles} hasOrganization={actor.memberships.length > 0} />
         <main id="main" className="min-w-0 flex-1">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800">
+            <span>
+              <strong>UI showcase:</strong> sample data and actions reset when the page reloads.
+            </span>
+            <Link href="/" className="font-medium underline underline-offset-2">
+              View public site
+            </Link>
+          </div>
           {children}
         </main>
       </div>

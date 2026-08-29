@@ -1,19 +1,13 @@
 import Link from "next/link";
 import { Card, CardBody, EmptyState } from "@/components/ui";
 import { ActionButton } from "@/components/dashboard/action-button";
-import { requireActor } from "@/server/auth/session";
-import { prisma } from "@/server/db";
 import { formatDateTime } from "@/lib/format";
+import { demoNotifications } from "@/lib/demo-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
-  const actor = await requireActor();
-  const notifications = await prisma.notification.findMany({
-    where: { userId: actor.id },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const notifications = demoNotifications;
 
   return (
     <div className="space-y-5">

@@ -1,20 +1,18 @@
 import { Card, CardBody, CardHeader, Stat, Table, Td, Th } from "@/components/ui";
-import { requireRole } from "@/server/auth/session";
-import { adminOverview } from "@/server/services/analytics";
 import { formatMoney } from "@/lib/money";
+import { demoAnalytics } from "@/lib/demo-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
-  const actor = await requireRole("PROJECT_MANAGER", "FINANCE", "SUPER_ADMIN");
-  const overview = await adminOverview(actor);
+  const overview = demoAnalytics;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl">Analytics</h1>
         <p className="mt-1 text-sm text-ink-500">
-          Figures are calculated from live project, invoice and payment records.
+          A representative view of project, invoice and payment performance.
         </p>
       </div>
 

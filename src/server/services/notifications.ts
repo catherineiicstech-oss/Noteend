@@ -95,5 +95,7 @@ export async function markNotificationRead(userId: string, notificationId: strin
 }
 
 export async function unreadCount(userId: string): Promise<number> {
+  // The UI branch uses a fixed demo inbox and never contacts Prisma.
+  if (userId === "demo-admin") return 2;
   return prisma.notification.count({ where: { userId, readAt: null } });
 }

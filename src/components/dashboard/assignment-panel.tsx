@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Badge, Card, CardBody, CardHeader, Select } from "@/components/ui";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,6 @@ export function AssignmentPanel({
   staff: StaffOption[];
   assignments: CurrentAssignment[];
 }) {
-  const router = useRouter();
   const [role, setRole] = useState("EDITOR");
   const [userId, setUserId] = useState("");
   const [pending, setPending] = useState(false);
@@ -39,21 +37,17 @@ export function AssignmentPanel({
   async function call(init: RequestInit) {
     setPending(true);
     setError(null);
-    const response = await fetch(`/api/projects/${projectId}/assignments`, init);
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
     setPending(false);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(payload.error ?? "That action could not be completed");
-      return;
-    }
-    router.refresh();
+    setError(`Demo team action saved locally for ${projectId}.`);
+    void init;
   }
 
   return (
     <Card>
       <CardHeader title="Team" description="Editors only see the projects they are assigned to." />
       <CardBody className="space-y-4">
-        {error ? <Alert tone="danger">{error}</Alert> : null}
+        {error ? <Alert tone="success">{error}</Alert> : null}
 
         {assignments.length ? (
           <ul className="space-y-2">

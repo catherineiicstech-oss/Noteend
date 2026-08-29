@@ -1,32 +1,15 @@
 import Link from "next/link";
 import { Badge, Card, CardBody, EmptyState, Table, Td, Th } from "@/components/ui";
 import { ActionButton } from "@/components/dashboard/action-button";
-import { requireActor } from "@/server/auth/session";
-import { prisma } from "@/server/db";
-import { hasRole } from "@/server/policies";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/format";
+import { demoInvoices } from "@/lib/demo-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function InvoicesPage() {
-  const actor = await requireActor();
-  const finance = hasRole(actor, "FINANCE", "SUPER_ADMIN");
-  const organizationIds = actor.memberships.map((entry) => entry.organizationId);
-
-  const invoices = await prisma.invoice.findMany({
-    where: finance
-      ? {}
-      : {
-          OR: [
-            { project: { ownerUserId: actor.id } },
-            ...(organizationIds.length ? [{ organizationId: { in: organizationIds } }] : []),
-          ],
-        },
-    include: { project: { select: { id: true, title: true, reference: true } }, payments: true },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const finance = true;
+  const invoices = demoInvoices;
 
   return (
     <div className="space-y-5">

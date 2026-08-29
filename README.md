@@ -5,6 +5,22 @@ services company. It combines the public marketing site, the quote-to-delivery w
 (quote request → quote → payment → assignment → editing → QA → delivery) and the
 customer, staff and administrator dashboards in one Next.js application.
 
+## UI showcase branch
+
+The `ui` branch is a database-free walkthrough build. It includes representative catalogue,
+project, quote, invoice, organisation, notification and analytics data in memory, signs visitors
+into a demo administrator workspace automatically, and simulates form and dashboard actions in
+the browser.
+
+```bash
+npm ci
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). No `.env` file, PostgreSQL container, seed,
+object storage, email provider or login credentials are required. Demo changes reset when a page
+reloads.
+
 > The brand name `Scriptor` is a placeholder chosen because the specification does not
 > name the company. Renaming it means editing `src/lib/site.ts` and the seeded content.
 

@@ -1,35 +1,14 @@
-import { Card, CardBody, CardHeader, EmptyState, Stat } from "@/components/ui";
+import { EmptyState, Stat } from "@/components/ui";
 import { OrganizationPanel } from "@/components/dashboard/organization-panel";
-import { CreateOrganizationForm } from "@/components/dashboard/create-organization-form";
-import { requireActor } from "@/server/auth/session";
-import { getOrganization, organizationUsage } from "@/server/services/organizations";
 import { formatMoney } from "@/lib/money";
+import { demoActor, demoOrganization, demoOrganizationUsage } from "@/lib/demo-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function OrganizationPage() {
-  const actor = await requireActor();
-  const membership = actor.memberships[0];
-
-  if (!membership) {
-    return (
-      <div className="space-y-5">
-        <h1 className="text-2xl">Organisation</h1>
-        <Card>
-          <CardHeader
-            title="Create an organisation"
-            description="Organisations let colleagues share projects, invoices and a single billing account."
-          />
-          <CardBody>
-            <CreateOrganizationForm />
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
-
-  const organization = await getOrganization(actor, membership.organizationId);
-  const usage = await organizationUsage(actor, membership.organizationId);
+  const membership = demoActor.memberships[0];
+  const organization = demoOrganization;
+  const usage = demoOrganizationUsage;
 
   return (
     <div className="space-y-5">
@@ -58,7 +37,7 @@ export default async function OrganizationPage() {
           id: invitation.id,
           email: invitation.email,
           role: invitation.role,
-          acceptedAt: invitation.acceptedAt?.toISOString() ?? null,
+          acceptedAt: invitation.acceptedAt,
         }))}
       />
 

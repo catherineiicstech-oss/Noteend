@@ -1,94 +1,58 @@
-import { prisma } from "@/server/db";
+import {
+  demoArticles,
+  demoCategories,
+  demoFaqs,
+  demoIndustries,
+  demoPlans,
+  demoServices,
+  demoTestimonials,
+} from "@/lib/demo-data";
 
-export function listPublicCategories() {
-  return prisma.serviceCategory.findMany({
-    where: { isActive: true },
-    orderBy: { position: "asc" },
-    include: {
-      services: {
-        where: { isActive: true },
-        orderBy: { position: "asc" },
-        include: { pricingRules: { where: { isActive: true }, take: 1 } },
-      },
-    },
-  });
+/**
+ * The UI showcase branch deliberately serves its catalogue from memory.
+ * Keeping the same service API means the production-backed pages need no
+ * special rendering path while the demo remains completely database-free.
+ */
+export async function listPublicCategories() {
+  return demoCategories;
 }
 
-export function listPublicServices() {
-  return prisma.service.findMany({
-    where: { isActive: true },
-    orderBy: [{ category: { position: "asc" } }, { position: "asc" }],
-    include: {
-      category: true,
-      pricingRules: { where: { isActive: true }, take: 1 },
-    },
-  });
+export async function listPublicServices() {
+  return demoServices;
 }
 
-export function getServiceBySlug(slug: string) {
-  return prisma.service.findFirst({
-    where: { slug, isActive: true },
-    include: {
-      category: true,
-      pricingRules: {
-        where: { isActive: true },
-        take: 1,
-        include: { complexityMultipliers: true, rushMultipliers: true },
-      },
-    },
-  });
+export async function getServiceBySlug(slug: string) {
+  return demoServices.find((service) => service.slug === slug) ?? null;
 }
 
-export function listIndustries() {
-  return prisma.industry.findMany({
-    where: { isActive: true },
-    orderBy: { position: "asc" },
-  });
+export async function listIndustries() {
+  return demoIndustries;
 }
 
-export function getIndustryBySlug(slug: string) {
-  return prisma.industry.findFirst({ where: { slug, isActive: true } });
+export async function getIndustryBySlug(slug: string) {
+  return demoIndustries.find((industry) => industry.slug === slug) ?? null;
 }
 
-export function listFaqs(topic?: string) {
-  return prisma.faq.findMany({
-    where: { isActive: true, ...(topic ? { topic } : {}) },
-    orderBy: { position: "asc" },
-  });
+export async function listFaqs(topic?: string) {
+  return topic ? demoFaqs.filter((faq) => faq.topic === topic) : demoFaqs;
 }
 
-export function listArticles(limit?: number) {
-  return prisma.article.findMany({
-    where: { isPublished: true },
-    orderBy: { publishedAt: "desc" },
-    take: limit,
-    include: { author: { select: { name: true } } },
-  });
+export async function listArticles(limit?: number) {
+  return typeof limit === "number" ? demoArticles.slice(0, limit) : demoArticles;
 }
 
-export function getArticleBySlug(slug: string) {
-  return prisma.article.findFirst({
-    where: { slug, isPublished: true },
-    include: { author: { select: { name: true } } },
-  });
+export async function getArticleBySlug(slug: string) {
+  return demoArticles.find((article) => article.slug === slug) ?? null;
 }
 
-export function listPlans() {
-  return prisma.plan.findMany({ where: { isActive: true }, orderBy: { position: "asc" } });
+export async function listPlans() {
+  return demoPlans;
 }
 
-export function listPackages() {
-  return prisma.servicePackage.findMany({
-    where: { isActive: true },
-    include: { items: { include: { service: { select: { name: true } } } } },
-  });
+export async function listPackages() {
+  return [];
 }
 
-/// Only genuine, published testimonials are shown; placeholder rows exist for
-/// admin previews and are never rendered publicly.
-export function listPublishedTestimonials() {
-  return prisma.testimonial.findMany({
-    where: { isPublished: true, isPlaceholder: false },
-    orderBy: { position: "asc" },
-  });
+export async function listPublishedTestimonials() {
+  return demoTestimonials;
 }

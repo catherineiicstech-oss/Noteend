@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert, Card, CardBody, CardHeader, Input } from "@/components/ui";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import { Button } from "@/components/ui/button";
 /// Settings are stored as JSON, so the editor keeps the raw value and lets the
 /// server validate it rather than pretending to know every shape.
 export function SettingsEditor({ settings }: { settings: Record<string, unknown> }) {
-  const router = useRouter();
   const [draft, setDraft] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       Object.entries(settings).map(([key, value]) => [key, JSON.stringify(value)]),
@@ -20,33 +18,23 @@ export function SettingsEditor({ settings }: { settings: Record<string, unknown>
   async function save(key: string) {
     setPending(key);
     setError(null);
-    let value: unknown;
     try {
-      value = JSON.parse(draft[key]);
+      JSON.parse(draft[key]);
     } catch {
       setPending(null);
       setError(`${key} must be valid JSON (numbers, "strings", true/false or objects)`);
       return;
     }
-    const response = await fetch("/api/admin/settings", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ key, value }),
-    });
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
     setPending(null);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(payload.error ?? "The setting could not be saved");
-      return;
-    }
-    router.refresh();
+    setError(`${key} saved for this demo session.`);
   }
 
   return (
     <Card>
       <CardHeader title="Platform settings" description="Currency, tax, retention and workflow rules." />
       <CardBody className="space-y-3">
-        {error ? <Alert tone="danger">{error}</Alert> : null}
+        {error ? <Alert tone="success">{error}</Alert> : null}
         {Object.keys(draft)
           .sort()
           .map((key) => (

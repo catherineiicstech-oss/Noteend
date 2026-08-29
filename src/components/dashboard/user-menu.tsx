@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import type { SystemRole } from "@prisma/client";
 import { Bell } from "lucide-react";
 import { Badge } from "@/components/ui";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 
 const roleLabels: Record<SystemRole, string> = {
   CUSTOMER: "Customer",
@@ -52,9 +51,9 @@ export function UserMenu({
           </Badge>
         ))}
       </div>
-      <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
-        Sign out
-      </Button>
+      <ButtonLink href="/" variant="outline" size="sm">
+        Exit demo
+      </ButtonLink>
     </div>
   );
 }

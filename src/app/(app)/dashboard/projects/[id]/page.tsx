@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { FileKind, ProjectStatus, QuoteStatus, SystemRole } from "@prisma/client";
+import { FileKind, ProjectStatus, QuoteStatus } from "@prisma/client";
 import { Badge, Card, CardBody, CardHeader } from "@/components/ui";
 import { ActionButton } from "@/components/dashboard/action-button";
 import { AssignmentPanel } from "@/components/dashboard/assignment-panel";
@@ -8,7 +8,6 @@ import { MessageThread } from "@/components/dashboard/message-thread";
 import { QaPanel } from "@/components/dashboard/qa-panel";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { requireActor } from "@/server/auth/session";
-import { prisma } from "@/server/db";
 import {
   canManageProject,
   canReviewQA,
@@ -22,6 +21,7 @@ import { ALLOWED_TRANSITIONS, CUSTOMER_TRACKER_STEPS, STATUS_LABELS, trackerInde
 import { formatMoney } from "@/lib/money";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { demoProject, demoProjects, demoStaff } from "@/lib/demo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -48,38 +48,35 @@ export default async function ProjectDetailPage({
   const { id } = await params;
   const actor = await requireActor();
 
-  const project = await getProjectForActor(actor, id).catch(() => null);
+  const demoSummary = demoProjects.find((item) => item.id === id);
+  const project = actor.id === "demo-admin"
+    ? demoSummary
+      ? { ...demoProject, ...demoSummary }
+      : null
+    : await getProjectForActor(actor, id).catch(() => null);
   if (!project) notFound();
 
-  const context = await loadProjectContext(project.id);
-  const messages = await listMessages(actor, project.id);
+  const context = actor.id === "demo-admin"
+    ? {
+        id: project.id,
+        ownerUserId: project.owner.id,
+        organizationId: project.organization?.id ?? null,
+        status: project.status,
+        isPremium: project.isPremium,
+        assignments: project.assignments.map((assignment) => ({
+          userId: assignment.user.id,
+          role: assignment.role,
+          unassignedAt: null,
+        })),
+      }
+    : await loadProjectContext(project.id);
+  const messages = actor.id === "demo-admin" ? demoProject.messages : await listMessages(actor, project.id);
   const staff = isStaff(actor);
   const manages = canManageProject(actor, context);
   const isEditor = canSubmitEditorWork(actor, context);
   const reviewsQa = canReviewQA(actor, context);
 
-  const staffOptions = manages
-    ? (
-        await prisma.user.findMany({
-          where: {
-            isActive: true,
-            roles: {
-              some: {
-                role: {
-                  in: [SystemRole.PROJECT_MANAGER, SystemRole.EDITOR, SystemRole.QA_REVIEWER],
-                },
-              },
-            },
-          },
-          select: { id: true, name: true, roles: { select: { role: true } } },
-          orderBy: { name: "asc" },
-        })
-      ).map((user) => ({
-        id: user.id,
-        name: user.name,
-        roles: user.roles.map((entry) => entry.role as string),
-      }))
-    : [];
+  const staffOptions = manages ? demoStaff : [];
 
   const uploadKinds: FileKind[] = manages
     ? [FileKind.ORIGINAL, FileKind.REFERENCE, FileKind.WORKING, FileKind.EDITED, FileKind.FINAL]

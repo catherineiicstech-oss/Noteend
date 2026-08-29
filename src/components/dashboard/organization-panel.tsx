@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { OrgRole } from "@prisma/client";
 import { Alert, Badge, Card, CardBody, CardHeader, Input, Select } from "@/components/ui";
@@ -30,7 +29,6 @@ export function OrganizationPanel({
   invitations: OrgInvitation[];
   canManage: boolean;
 }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<OrgRole>("MEMBER");
   const [pending, setPending] = useState(false);
@@ -39,15 +37,11 @@ export function OrganizationPanel({
   async function call(init: RequestInit) {
     setPending(true);
     setError(null);
-    const response = await fetch(`/api/organizations/${organizationId}/members`, init);
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
     setPending(false);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(payload.error ?? "That action could not be completed");
-      return;
-    }
     setEmail("");
-    router.refresh();
+    setError(`Demo member action saved locally for ${organizationId}.`);
+    void init;
   }
 
   return (
@@ -57,7 +51,7 @@ export function OrganizationPanel({
         description="Administrators control who can see the organisation's projects and invoices."
       />
       <CardBody className="space-y-4">
-        {error ? <Alert tone="danger">{error}</Alert> : null}
+        {error ? <Alert tone="success">{error}</Alert> : null}
 
         <ul className="divide-y divide-ink-50">
           {members.map((member) => (

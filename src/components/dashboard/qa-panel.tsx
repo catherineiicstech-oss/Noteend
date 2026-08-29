@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { QAOutcome } from "@prisma/client";
 import { Alert, Badge, Card, CardBody, CardHeader, Textarea } from "@/components/ui";
@@ -35,7 +34,6 @@ export function QaPanel({
   canReview: boolean;
   canStart: boolean;
 }) {
-  const router = useRouter();
   const [comments, setComments] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,14 +42,11 @@ export function QaPanel({
   async function call(endpoint: string, init: RequestInit) {
     setPending(true);
     setError(null);
-    const response = await fetch(endpoint, init);
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
     setPending(false);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(payload.error ?? "That action could not be completed");
-      return false;
-    }
-    router.refresh();
+    setError("Demo QA action saved locally.");
+    void endpoint;
+    void init;
     return true;
   }
 
@@ -62,7 +57,7 @@ export function QaPanel({
         description="Premium work must pass a checklist review before it can be completed."
       />
       <CardBody className="space-y-4">
-        {error ? <Alert tone="danger">{error}</Alert> : null}
+        {error ? <Alert tone="success">{error}</Alert> : null}
 
         {open && canReview ? (
           <div className="space-y-3">
@@ -72,7 +67,7 @@ export function QaPanel({
                   <input
                     type="checkbox"
                     className="mt-1"
-                    checked={item.checked}
+                    defaultChecked={item.checked}
                     disabled={pending}
                     onChange={(event) =>
                       void call(`/api/qa/items/${item.id}`, {

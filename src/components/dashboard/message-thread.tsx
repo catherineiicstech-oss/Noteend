@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { MessageVisibility } from "@prisma/client";
 import { Alert, Badge, Card, CardBody, CardHeader, EmptyState, Textarea } from "@/components/ui";
@@ -24,7 +23,7 @@ export function MessageThread({
   messages: ThreadMessage[];
   canPostInternal: boolean;
 }) {
-  const router = useRouter();
+  const [items, setItems] = useState(messages);
   const [body, setBody] = useState("");
   const [visibility, setVisibility] = useState<MessageVisibility>("CUSTOMER");
   const [pending, setPending] = useState(false);
@@ -35,19 +34,20 @@ export function MessageThread({
     if (!body.trim()) return;
     setPending(true);
     setError(null);
-    const response = await fetch(`/api/projects/${projectId}/messages`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ body, visibility }),
-    });
+    await new Promise((resolve) => window.setTimeout(resolve, 300));
+    setItems((current) => [
+      ...current,
+      {
+        id: `${projectId}-demo-message-${current.length + 1}`,
+        body: body.trim(),
+        visibility,
+        createdAt: new Date().toISOString(),
+        author: { name: "Amina Nansubuga" },
+      },
+    ]);
     setPending(false);
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(payload.error ?? "Message not sent");
-      return;
-    }
     setBody("");
-    router.refresh();
+    setError("Demo message added locally.");
   }
 
   return (
@@ -61,11 +61,11 @@ export function MessageThread({
         }
       />
       <CardBody className="space-y-4">
-        {error ? <Alert tone="danger">{error}</Alert> : null}
+        {error ? <Alert tone="success">{error}</Alert> : null}
 
-        {messages.length ? (
+        {items.length ? (
           <ul className="space-y-3">
-            {messages.map((message) => (
+            {items.map((message) => (
               <li
                 key={message.id}
                 className={

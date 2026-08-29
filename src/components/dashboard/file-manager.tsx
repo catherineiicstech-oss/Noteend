@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FileKind } from "@prisma/client";
 import { Download, Lock } from "lucide-react";
@@ -44,7 +43,7 @@ export function FileManager({
   uploadKinds: FileKind[];
   canMarkCustomerVisible: boolean;
 }) {
-  const router = useRouter();
+  const [items, setItems] = useState(files);
   const [kind, setKind] = useState<FileKind | "">(uploadKinds[0] ?? "");
   const [customerVisible, setCustomerVisible] = useState(false);
   const [pending, setPending] = useState(false);
@@ -55,34 +54,33 @@ export function FileManager({
     if (!file || !kind) return;
     setPending(true);
     setError(null);
-    const form = new FormData();
-    form.set("file", file);
-    form.set("kind", kind);
-    form.set("customerVisible", String(customerVisible));
-
-    const response = await fetch(`/api/projects/${projectId}/files`, {
-      method: "POST",
-      body: form,
-    });
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
+    setItems((current) => [
+      ...current,
+      {
+        id: `${projectId}-demo-file-${current.length + 1}`,
+        filename: file.name,
+        kind,
+        version: 1,
+        sizeBytes: file.size,
+        customerVisible,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
     setPending(false);
     event.target.value = "";
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({}));
-      setError(payload.error ?? "Upload failed");
-      return;
-    }
-    router.refresh();
+    setError("Demo upload added locally. It will reset when the page reloads.");
   }
 
   return (
     <Card>
       <CardHeader title="Documents" description="Stored privately and served through expiring links." />
       <CardBody className="space-y-4">
-        {error ? <Alert tone="danger">{error}</Alert> : null}
+        {error ? <Alert tone="success">{error}</Alert> : null}
 
-        {files.length ? (
+        {items.length ? (
           <ul className="divide-y divide-ink-50">
-            {files.map((file) => (
+            {items.map((file) => (
               <li key={file.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-ink-900">{file.filename}</p>
@@ -101,7 +99,8 @@ export function FileManager({
                     </span>
                   ) : null}
                   <a
-                    href={`/api/files/${file.id}/download`}
+                    href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Demo preview for ${file.filename}`)}`}
+                    download={file.filename}
                     className="inline-flex items-center gap-1 text-sm font-medium text-accent-700 hover:text-accent-800"
                   >
                     <Download size={14} aria-hidden /> Download

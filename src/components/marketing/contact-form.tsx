@@ -20,20 +20,10 @@ export function ContactForm() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setState("sending");
-    const form = new FormData(event.currentTarget);
-    const response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(form)),
-    });
-    if (response.ok) {
-      setState("sent");
-      event.currentTarget.reset();
-    } else {
-      const body = await response.json().catch(() => ({ error: "Something went wrong" }));
-      setMessage(body.error ?? "Something went wrong");
-      setState("error");
-    }
+    await new Promise((resolve) => window.setTimeout(resolve, 450));
+    setMessage("");
+    setState("sent");
+    event.currentTarget.reset();
   }
 
   return (

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { Menu, X } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site";
@@ -21,13 +20,15 @@ const links = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const { status } = useSession();
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/95 backdrop-blur">
       <div className="container flex h-16 items-center justify-between gap-4">
         <Link href="/" className="font-display text-lg font-semibold text-ink-950">
           {siteConfig.name}
+          <span className="ml-2 rounded-full bg-accent-50 px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-accent-700">
+            UI demo
+          </span>
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-6 lg:flex">
@@ -46,15 +47,9 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          {status === "authenticated" ? (
-            <ButtonLink href="/dashboard" variant="outline" size="sm">
-              Dashboard
-            </ButtonLink>
-          ) : (
-            <ButtonLink href="/login" variant="ghost" size="sm">
-              Sign in
-            </ButtonLink>
-          )}
+          <ButtonLink href="/dashboard" variant="outline" size="sm">
+            Dashboard
+          </ButtonLink>
           <ButtonLink href="/quote" size="sm">
             Get a quote
           </ButtonLink>
@@ -87,12 +82,12 @@ export function SiteHeader() {
             ))}
             <div className="mt-3 flex gap-3">
               <ButtonLink
-                href={status === "authenticated" ? "/dashboard" : "/login"}
+                href="/dashboard"
                 variant="outline"
                 className="flex-1"
                 onClick={() => setOpen(false)}
               >
-                {status === "authenticated" ? "Dashboard" : "Sign in"}
+                Dashboard
               </ButtonLink>
               <ButtonLink href="/quote" className="flex-1" onClick={() => setOpen(false)}>
                 Get a quote
